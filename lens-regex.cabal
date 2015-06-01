@@ -1,0 +1,27 @@
+name:                lens-regex
+version:             0.1.0
+synopsis:            Lens powered regular expression
+description:         Lens powered regular expression
+license:             BSD3
+license-file:        LICENSE
+author:              Takahiro HIMURA
+maintainer:          Takahiro HIMURA <taka@himura.jp>
+copyright:           Copyright (C) 2015 Takahiro HIMURA
+category:            Text
+build-type:          Simple
+cabal-version:       >=1.10
+
+extra-source-files:
+  .gitignore
+  README.md
+  CHANGELOG.md
+
+library
+  exposed-modules:     Text.Regex.Lens
+  build-depends:       base >= 4.7 && < 4.8
+                     , lens >= 4 && < 5
+                     , regex-base
+                     , regex-posix
+  hs-source-dirs:      src
+  ghc-options:         -Wall
+  default-language:    Haskell2010
