@@ -19,6 +19,7 @@ extra-source-files:
 library
   exposed-modules:     Text.Regex.Lens
   build-depends:       base >= 4.7 && < 4.8
+                     , array
                      , lens >= 4 && < 5
                      , regex-base
                      , regex-posix
