@@ -1,11 +1,11 @@
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Text.Regex.Lens
        ( regex
        , regex'
-       , matched
-       , matched'
+       , filterMatched
        ) where
 
 import Control.Lens
@@ -15,34 +15,25 @@ import Text.Regex.Posix
 import qualified Data.Array as A
 
 type RegexResult = [RegexPartialResult]
+type RegexPartialResult = Either String MatchPart
 
-data RegexPartialResult
-    = RegexMatchedPart (String, [String])
-    | RegexOtherPart String
-    deriving Show
+data MatchPart = MatchPart
+    { _matchedString :: String
+    , _backreferences :: [String]
+    } deriving Show
+makeLenses ''MatchPart
 
 regex :: (Indexable Int p, Applicative f)
       => String
-      -> p (String, [String]) (f (String, [String]))
+      -> p MatchPart (f MatchPart)
       -> String -> f String
-regex pat = regex' pat . matched
+regex pat = regex' pat . traversed . filterMatched
 
 regex' :: String -> Lens' String RegexResult
 regex' pat f target = fromRegexResult <$> f (toRegexResult pat target)
 
-matched :: (Choice p, Indexable Int p, Applicative f, Traversable t)
-        => p (String, [String]) (f (String, [String]))
-        -> t RegexPartialResult -> f (t RegexPartialResult)
-matched = traversed . matched'
-
-matched' :: (Choice p, Applicative f) => Optic' p f RegexPartialResult (String, [String])
-matched' = dimap matchedStr toRes . right'
-  where
-    matchedStr (RegexMatchedPart s) = Right s
-    matchedStr (RegexOtherPart s) = Left s
-
-    toRes (Left s) = pure (RegexOtherPart s)
-    toRes (Right x) = RegexMatchedPart <$> x
+filterMatched :: (Choice p, Applicative f) => Optic' p f RegexPartialResult MatchPart
+filterMatched = dimap id (either (pure . Left) (Right <$>)) . right'
 
 toRegexResult :: String -> String -> RegexResult
 toRegexResult pat target = go 0 matchList
@@ -50,19 +41,19 @@ toRegexResult pat target = go 0 matchList
     matchList :: [A.Array Int (MatchOffset, MatchLength)]
     matchList = target =~ pat
 
-    go pos [] = [RegexOtherPart (after pos target)]
+    go pos [] = [Left (after pos target)]
     go pos (m:ms) =
         if posDiff > 0
-            then RegexOtherPart (extract (pos, posDiff) target) : cont
+            then Left (extract (pos, posDiff) target) : cont
             else cont
       where
         (pos', len) = m A.! 0
         posDiff = pos' - pos
-        (matchStr:submatches) = map (flip extract target) $ A.elems m
-        cont = RegexMatchedPart (matchStr, submatches) : go (pos' + len) ms
+        (ms0:mss) = map (flip extract target) $ A.elems m
+        cont = Right (MatchPart ms0 mss) : go (pos' + len) ms
 
 fromRegexResult :: RegexResult -> String
 fromRegexResult = concat . map toStr
   where
-    toStr (RegexMatchedPart (s, _)) = s
-    toStr (RegexOtherPart s) = s
+    toStr (Right (MatchPart s _)) = s
+    toStr (Left s) = s
