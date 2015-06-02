@@ -17,13 +17,13 @@ import qualified Data.Array as A
 type RegexResult = [RegexPartialResult]
 
 data RegexPartialResult
-    = RegexMatchedPart (String, MatchArray)
+    = RegexMatchedPart (String, [String])
     | RegexOtherPart String
     deriving Show
 
 regex :: (Indexable Int p, Applicative f)
       => String
-      -> p (String, MatchArray) (f (String, MatchArray))
+      -> p (String, [String]) (f (String, [String]))
       -> String -> f String
 regex pat = regex' pat . matched
 
@@ -31,11 +31,11 @@ regex' :: String -> Lens' String RegexResult
 regex' pat f target = fromRegexResult <$> f (toRegexResult pat target)
 
 matched :: (Choice p, Indexable Int p, Applicative f, Traversable t)
-        => p (String, MatchArray) (f (String, MatchArray))
+        => p (String, [String]) (f (String, [String]))
         -> t RegexPartialResult -> f (t RegexPartialResult)
 matched = traversed . matched'
 
-matched' :: (Choice p, Applicative f) => Optic' p f RegexPartialResult (String, MatchArray)
+matched' :: (Choice p, Applicative f) => Optic' p f RegexPartialResult (String, [String])
 matched' = dimap matchedStr toRes . right'
   where
     matchedStr (RegexMatchedPart s) = Right s
@@ -47,6 +47,7 @@ matched' = dimap matchedStr toRes . right'
 toRegexResult :: String -> String -> RegexResult
 toRegexResult pat target = go 0 matchList
   where
+    matchList :: [A.Array Int (MatchOffset, MatchLength)]
     matchList = target =~ pat
 
     go pos [] = [RegexOtherPart (after pos target)]
@@ -55,9 +56,10 @@ toRegexResult pat target = go 0 matchList
             then RegexOtherPart (extract (pos, posDiff) target) : cont
             else cont
       where
-        pl@(pos', len) = m A.! 0
+        (pos', len) = m A.! 0
         posDiff = pos' - pos
-        cont = RegexMatchedPart ((extract pl target), m) : go (pos' + len) ms
+        (matchStr:submatches) = map (flip extract target) $ A.elems m
+        cont = RegexMatchedPart (matchStr, submatches) : go (pos' + len) ms
 
 fromRegexResult :: RegexResult -> String
 fromRegexResult = concat . map toStr
