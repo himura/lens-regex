@@ -6,12 +6,11 @@ module Text.Regex.Lens
        ( MatchPart(..)
        , matchedString
        , backreferences
-       , iregexTraverse
-       , regexTraverse
 
        , regex
        , regex'
-       , filterMatched
+       , matched
+       , matched'
        ) where
 
 import Control.Applicative
@@ -33,25 +32,21 @@ regex :: (Indexable Int p, Applicative f, RegexLike regex text, Monoid text)
       => regex
       -> p (MatchPart text) (f (MatchPart text))
       -> text -> f text
-regex pat = regex' pat . traversed . filterMatched
+regex pat = regex' pat . matched
 
 regex' :: (RegexLike regex text, Monoid text) => regex -> Lens' text (RegexResult text)
 regex' pat f target = fromRegexResult <$> f (toRegexResult pat target)
 
-regexTraverse :: (RegexLike regex text, Monoid text) => regex -> Traversal' text (MatchPart text)
-regexTraverse pat f target = fromRegexResult <$> go (toRegexResult pat target)
+matched :: (Indexable Int p, Applicative f)
+        => p (MatchPart text) (f (MatchPart text)) -> RegexResult text -> f (RegexResult text)
+matched = conjoined matched' (indexing matched')
+
+matched' :: Traversal' (RegexResult text) (MatchPart text)
+matched' f target = go target
   where
     go [] = pure []
     go ((Left x):xs) = ((Left x):) <$> go xs
     go ((Right x):xs) = (:) <$> (Right <$> f x) <*> go xs
-
-iregexTraverse :: (Indexable Int p, Applicative f, RegexLike regex text, Monoid text)
-               => regex
-               -> p (MatchPart text) (f (MatchPart text)) -> text -> f text
-iregexTraverse pat = conjoined (regexTraverse pat) (indexing (regexTraverse pat))
-
-filterMatched :: (Choice p, Applicative f) => Optic' p f (RegexPartialResult text) (MatchPart text)
-filterMatched = dimap id (either (pure . Left) (Right <$>)) . right'
 
 toRegexResult :: RegexLike regex text => regex -> text -> (RegexResult text)
 toRegexResult pat target = go 0 $ matchAll pat target
