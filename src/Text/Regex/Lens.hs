@@ -5,7 +5,7 @@
 module Text.Regex.Lens
        ( MatchPart(..)
        , matchedString
-       , backreferences
+       , captures
 
        , regex
        , regex'
@@ -24,7 +24,7 @@ type RegexPartialResult text = Either text (MatchPart text)
 
 data MatchPart text = MatchPart
     { _matchedString :: text
-    , _backreferences :: [text]
+    , _captures :: [text]
     } deriving Show
 makeLenses ''MatchPart
 
