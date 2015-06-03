@@ -18,10 +18,12 @@ extra-source-files:
 
 library
   exposed-modules:     Text.Regex.Lens
+                       Text.Regex.Quote
   build-depends:       base >= 4.7 && < 4.8
                      , array
                      , lens >= 4 && < 5
                      , regex-base
+                     , template-haskell
   hs-source-dirs:      src
   ghc-options:         -Wall
   default-language:    Haskell2010
