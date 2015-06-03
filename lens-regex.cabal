@@ -22,7 +22,6 @@ library
                      , array
                      , lens >= 4 && < 5
                      , regex-base
-                     , regex-posix
   hs-source-dirs:      src
   ghc-options:         -Wall
   default-language:    Haskell2010
