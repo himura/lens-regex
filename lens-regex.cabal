@@ -56,4 +56,5 @@ test-suite doctests
                      , directory
                      , doctest
                      , filepath
+                     , regex-posix
   default-language:  Haskell2010
