@@ -1,0 +1,57 @@
+language: haskell
+
+env:
+  matrix:
+    - GHCVER=7.4.2
+    - GHCVER=7.6.3
+    - GHCVER=7.8.4
+    - GHCVER=7.10.1 USE_COVERALLS=1
+    - GHCVER=head
+
+matrix:
+  allow_failures:
+    - env: GHCVER=7.4.2
+    - env: GHCVER=head
+
+before_install:
+  - |
+    if [ $GHCVER = `ghc --numeric-version` ]; then
+      echo "use system ghc: `which ghc` `ghc --numeric-version`"
+    else
+      travis_retry sudo add-apt-repository -y ppa:hvr/ghc
+      travis_retry sudo apt-get update
+      travis_retry sudo apt-get install  -y --force-yes cabal-install-1.18 ghc-$GHCVER
+      export PATH=/opt/ghc/$GHCVER/bin:/opt/cabal/1.18/bin:$PATH
+      echo "use ppa:hvr/ghc: `which ghc` `ghc --numeric-version`"
+    fi
+    cabal install Cabal --constraint="Cabal >= 1.18 && < 1.19"
+
+install:
+  - export PATH=$HOME/.cabal/bin:$PATH
+  - which cabal
+  - travis_retry cabal update
+  # GHC 7.8.3 exports transformers-0.3.0, but happy and our package installs transformers 0.4 series.
+  # However, doctest fails when we have multiple version of transformers.
+  # To prevent this, we restrict transformers version to (< 0.4)
+  - cabal install happy --constraint="transformers < 0.4"
+  - cabal install --only-dependencies --enable-tests
+  - "[ -n \"$USE_COVERALLS\" ] && travis_retry cabal install hpc-coveralls || true"
+  - ghc-pkg list
+
+script:
+  - |
+    if [ -n "$USE_COVERALLS" ]; then
+      cabal configure --enable-tests --enable-library-coverage $CABAL_FLAGS
+    else
+      cabal configure --enable-tests $CABAL_FLAGS
+    fi
+  - cabal build
+  - |
+    if [ -n "$USE_COVERALLS" ]; then
+      run-cabal-test --show-details=always
+    else
+      cabal test --show-details=always
+    fi
+
+after_script:
+  - "[ -n \"$USE_COVERALLS\" ] && hpc-coveralls --exclude-dir=tests doctests || true"
