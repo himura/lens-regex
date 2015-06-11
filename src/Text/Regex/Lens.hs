@@ -29,10 +29,9 @@ data MatchPart text = MatchPart
 makeLensesFor [("_matchedString", "matchedString")] ''MatchPart
 makeLensesWith (lensRulesFor [("_captures", "captures")] & generateUpdateableOptics .~ False) ''MatchPart
 
-regex :: (Indexable Int p, Applicative f, RegexLike regex text, Monoid text)
-      => regex
-      -> p (MatchPart text) (f (MatchPart text))
-      -> text -> f text
+regex :: (RegexLike regex text, Monoid text)
+      => regex -- ^ compiled regular expression
+      -> IndexedTraversal' Int text (MatchPart text)
 regex pat = regex' pat . matched
 
 regex' :: (RegexLike regex text, Monoid text) => regex -> Lens' text (RegexResult text)
