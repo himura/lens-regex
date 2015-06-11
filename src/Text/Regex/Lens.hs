@@ -19,6 +19,11 @@ import qualified Data.Array as A
 import Data.Monoid
 import Text.Regex.Base
 
+-- $setup
+-- >>> import Text.Regex.Quote
+-- >>> import Text.Regex.Posix
+-- >>> :set -XQuasiQuotes
+
 type RegexResult text = [RegexPartialResult text]
 type RegexPartialResult text = Either text (MatchPart text)
 
@@ -29,6 +34,53 @@ data MatchPart text = MatchPart
 makeLensesFor [("_matchedString", "matchedString")] ''MatchPart
 makeLensesWith (lensRulesFor [("_captures", "captures")] & generateUpdateableOptics .~ False) ''MatchPart
 
+-- | An indexed Traversal for matched part with regexp.
+--
+-- >>> "foo bar baz" ^? regex ([r|b.*r|] :: Regex)
+-- Just (MatchPart {_matchedString = "bar", _captures = []})
+--
+-- >>> "foo bar baz" ^? regex ([r|hoge|] :: Regex)
+-- Nothing
+--
+-- You can access to the matched string by using `matchedString`:
+--
+-- >>> "foo bar baz" ^? regex ([r|b.*r|] :: Regex) . matchedString
+-- Just "bar"
+--
+-- Multiple result:
+--
+-- >>> "foo bar baz" ^.. regex ([r|b[^ ]+|] :: Regex) . matchedString
+-- ["bar","baz"]
+--
+-- Replace:
+--
+-- >>> "foo bar baz" & regex ([r|b[^ ]+|] :: Regex) . matchedString .~ "nya"
+-- "foo nya nya"
+--
+-- Indexing:
+--
+-- >>> "foo bar baz" ^.. regex ([r|b[^ ]+|] :: Regex) . index 1 . matchedString
+-- ["baz"]
+--
+-- >>> "foo bar baz" & regex ([r|b[^ ]+|] :: Regex) . index 1 . matchedString .~ "nya"
+-- "foo bar nya"
+--
+-- Captures:
+--
+-- >>> "foo00 bar01 baz02" ^.. regex ([r|([a-z]+)([0-9]+)|] :: Regex) . captures
+-- [["foo","00"],["bar","01"],["baz","02"]]
+--
+-- >>> "foo00 bar01 baz02" ^.. regex ([r|([a-z]+)([0-9]+)|] :: Regex) . captures . traversed . index 1
+-- ["00","01","02"]
+--
+-- /Note/: This is /not/ a legal Traversal, unless you are very careful not to invalidate the predicate on the target.
+-- For example, if you replace the matched part with a string which is not match with the regex, the second 'Traversal' law is violated.
+--
+-- @
+-- let l = regex [r|t.*t|] . matchedString
+-- 'Control.Lens.Setter.over' l (++ "peta") '.' 'Control.Lens.Setter.over' l (++ "nya") '/=' 'Control.Lens.Setter.over' l ((++ "peta") . (++ "nya"))
+-- 'Control.Lens.Setter.over' l (++ "put") '.' 'Control.Lens.Setter.over' l (++ "hot") '==' 'Control.Lens.Setter.over' l ((++ "put") . (++ "hot"))
+-- @
 regex :: (RegexLike regex text, Monoid text)
       => regex -- ^ compiled regular expression
       -> IndexedTraversal' Int text (MatchPart text)
