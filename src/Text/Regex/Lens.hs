@@ -26,7 +26,8 @@ data MatchPart text = MatchPart
     { _matchedString :: text
     , _captures :: [text]
     } deriving Show
-makeLenses ''MatchPart
+makeLensesFor [("_matchedString", "matchedString")] ''MatchPart
+makeLensesWith (lensRulesFor [("_captures", "captures")] & generateUpdateableOptics .~ False) ''MatchPart
 
 regex :: (Indexable Int p, Applicative f, RegexLike regex text, Monoid text)
       => regex
