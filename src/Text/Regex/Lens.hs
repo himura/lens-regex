@@ -40,41 +40,41 @@ makeLensesWith (lensRulesFor [("_captures", "captures")] & generateUpdateableOpt
 
 -- | An indexed Traversal for matched part with regexp.
 --
--- >>> "foo bar baz" ^? regex ([r|b.*r|] :: Regex)
+-- >>> "foo bar baz" ^? regex [r|b.*r|]
 -- Just (MatchPart {_matchedString = "bar", _captures = []})
 --
--- >>> "foo bar baz" ^? regex ([r|hoge|] :: Regex)
+-- >>> "foo bar baz" ^? regex [r|hoge|]
 -- Nothing
 --
 -- You can access to the matched string by using `matchedString`:
 --
--- >>> "foo bar baz" ^? regex ([r|b.*r|] :: Regex) . matchedString
+-- >>> "foo bar baz" ^? regex [r|b.*r|] . matchedString
 -- Just "bar"
 --
 -- Multiple result:
 --
--- >>> "foo bar baz" ^.. regex ([r|b[^ ]+|] :: Regex) . matchedString
+-- >>> "foo bar baz" ^.. regex [r|b[^ ]+|] . matchedString
 -- ["bar","baz"]
 --
 -- Replace:
 --
--- >>> "foo bar baz" & regex ([r|b[^ ]+|] :: Regex) . matchedString .~ "nya"
+-- >>> "foo bar baz" & regex [r|b[^ ]+|] . matchedString .~ "nya"
 -- "foo nya nya"
 --
 -- Indexing:
 --
--- >>> "foo bar baz" ^.. regex ([r|b[^ ]+|] :: Regex) . index 1 . matchedString
+-- >>> "foo bar baz" ^.. regex [r|b[^ ]+|] . index 1 . matchedString
 -- ["baz"]
 --
--- >>> "foo bar baz" & regex ([r|b[^ ]+|] :: Regex) . index 1 . matchedString .~ "nya"
+-- >>> "foo bar baz" & regex [r|b[^ ]+|] . index 1 . matchedString .~ "nya"
 -- "foo bar nya"
 --
 -- Captures:
 --
--- >>> "foo00 bar01 baz02" ^.. regex ([r|([a-z]+)([0-9]+)|] :: Regex) . captures
+-- >>> "foo00 bar01 baz02" ^.. regex [r|([a-z]+)([0-9]+)|] . captures
 -- [["foo","00"],["bar","01"],["baz","02"]]
 --
--- >>> "foo00 bar01 baz02" ^.. regex ([r|([a-z]+)([0-9]+)|] :: Regex) . captures . traversed . index 1
+-- >>> "foo00 bar01 baz02" ^.. regex [r|([a-z]+)([0-9]+)|] . captures . traversed . index 1
 -- ["00","01","02"]
 --
 -- /Note/: This is /not/ a legal Traversal, unless you are very careful not to invalidate the predicate on the target.
