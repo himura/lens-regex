@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TemplateHaskell #-}
@@ -13,10 +14,13 @@ module Text.Regex.Lens
        , matched'
        ) where
 
+#if !MIN_VERSION_base(4,8,0)
 import Control.Applicative
+import Data.Monoid
+#endif
+
 import Control.Lens
 import qualified Data.Array as A
-import Data.Monoid
 import Text.Regex.Base
 
 -- $setup
