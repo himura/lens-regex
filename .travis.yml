@@ -19,7 +19,7 @@ before_install:
     else
       travis_retry sudo add-apt-repository -y ppa:hvr/ghc
       travis_retry sudo apt-get update
-      travis_retry sudo apt-get install  -y --force-yes cabal-install-1.18 ghc-$GHCVER happy
+      travis_retry sudo apt-get install  -y --force-yes cabal-install-1.18 ghc-$GHCVER
       export PATH=/opt/ghc/$GHCVER/bin:/opt/cabal/1.18/bin:$PATH
       echo "use ppa:hvr/ghc: `which ghc` `ghc --numeric-version`"
     fi
@@ -28,13 +28,6 @@ install:
   - export PATH=$HOME/.cabal/bin:$PATH
   - which cabal
   - travis_retry cabal update
-  # GHC 7.8.3 exports transformers-0.3.0, but happy and our package installs transformers 0.4 series.
-  # However, doctest fails when we have multiple version of transformers.
-  # To prevent this, we restrict transformers version to installed one.
-  - |
-    if [ $GHCVER = "head" ] || [ $GHCVER = "7.8.4" ] || [ $GHCVER = "7.10.1" ]; then
-      cabal install --constraint="transformers installed" happy
-    fi
   - cabal install --only-dependencies --enable-tests
   - ghc-pkg list
 
