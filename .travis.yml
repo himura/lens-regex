@@ -5,7 +5,7 @@ env:
     - GHCVER=7.4.2
     - GHCVER=7.6.3
     - GHCVER=7.8.4
-    - GHCVER=7.10.1 USE_COVERALLS=1
+    - GHCVER=7.10.1
     - GHCVER=head
 
 matrix:
@@ -37,23 +37,10 @@ install:
       cabal install --constraint="transformers installed" happy
     fi
   - cabal install --only-dependencies --enable-tests
-  - "[ -n \"$USE_COVERALLS\" ] && travis_retry cabal install hpc-coveralls || true"
   - ghc-pkg list
 
 script:
-  - |
-    if [ -n "$USE_COVERALLS" ]; then
-      cabal configure --enable-tests --enable-library-coverage $CABAL_FLAGS
-    else
-      cabal configure --enable-tests $CABAL_FLAGS
-    fi
+  - which cabal
+  - cabal configure --enable-tests
   - cabal build
-  - |
-    if [ -n "$USE_COVERALLS" ]; then
-      run-cabal-test --show-details=always
-    else
-      cabal test --show-details=always
-    fi
-
-after_script:
-  - "[ -n \"$USE_COVERALLS\" ] && hpc-coveralls --exclude-dir=tests doctests || true"
+  - cabal test --show-details=always
