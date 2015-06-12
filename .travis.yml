@@ -33,7 +33,7 @@ install:
 
 script:
   - which cabal
-  - cabal configure --enable-tests
+  - cabal configure --enable-tests -fbuild-samples
   - cabal build
   - cabal test --show-details=always
 
