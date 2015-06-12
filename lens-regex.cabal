@@ -13,6 +13,7 @@ cabal-version:       >=1.10
 
 extra-source-files:
   .gitignore
+  .travis.yml
   README.md
   CHANGELOG.md
   sample/*.hs
