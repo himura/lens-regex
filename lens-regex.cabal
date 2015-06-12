@@ -2,6 +2,7 @@ name:                lens-regex
 version:             0.1.0
 synopsis:            Lens powered regular expression
 description:         Lens powered regular expression
+homepage:            https://github.com/himura/lens-regex
 license:             BSD3
 license-file:        LICENSE
 author:              Takahiro HIMURA
@@ -17,6 +18,10 @@ extra-source-files:
   README.md
   CHANGELOG.md
   sample/*.hs
+
+source-repository head
+  type: git
+  location: https://github.com/himura/lens-regex.git
 
 flag build-samples
   description: build samples
