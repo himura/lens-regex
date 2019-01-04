@@ -10,13 +10,7 @@ import Control.Applicative
 main :: IO ()
 main = do
     sources <- findSources
-    doctest $
-        [ "-isrc"
-        , "-idist/build/autogen"
-        , "-optP-include"
-        , "-optPdist/build/autogen/cabal_macros.h"
-        ]
-        ++ sources
+    doctest sources
 
 findSources :: IO [FilePath]
 findSources = filter (isSuffixOf ".hs") <$> go "src"
