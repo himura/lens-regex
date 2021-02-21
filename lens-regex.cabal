@@ -1,5 +1,5 @@
 name:                lens-regex
-version:             0.1.1
+version:             0.1.2
 synopsis:            Lens powered regular expression
 description:         lens interface for regex-base. Please see the README on Github at <https://github.com/himura/lens-regex#readme>
 homepage:            https://github.com/himura/lens-regex
