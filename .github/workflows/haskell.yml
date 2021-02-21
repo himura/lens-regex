@@ -33,8 +33,6 @@ jobs:
     - name: Install dependencies
       run: |
         cabal v2-update
-        cabal v2-build all --only-dependencies --enable-tests
+        cabal v2-build all --only-dependencies
     - name: Build
-      run: cabal v2-build all
-    - name: Run tests
-      run: cabal v2-test all
+      run: cabal v2-build
